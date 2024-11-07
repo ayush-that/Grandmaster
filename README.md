@@ -1,6 +1,4 @@
-# Grandmaster
-
-A simple chess game implementation using C++ and Qt6.
+![Grandmaster Header](https://github.com/user-attachments/assets/0d46a805-d363-452c-91ee-5981bca5411c)
 
 ### Instructions
 
