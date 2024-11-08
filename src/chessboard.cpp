@@ -1,9 +1,10 @@
 #include "chessboard.h"
 #include <QtDebug>
 #include <QIcon>
+#include <cctype>
 
 ChessBoard::ChessBoard(QWidget *parent) : QWidget(parent), selectedPiece(nullptr) {
-    layout = new QGridLayout(   this);
+    layout = new QGridLayout(this);
     layout->setSpacing(0);
     layout->setContentsMargins(0, 0, 0, 0);
     
@@ -21,10 +22,9 @@ void ChessBoard::initializeBoard() {
             square->setProperty("row", row);
             square->setProperty("col", col);
             
-            QString style = ((row + col) % 2 == 0) 
-                ? "background-color: white;" 
-                : "background-color: lightgray;";
-            style += "font-size: 32px;";
+            QString style = ((row + col) % 2 == 0)
+                ? "background-color: #7c4c3e; font-size: 32px;"
+                : "background-color: #512a2a; font-size: 32px;";
             square->setStyleSheet(style);
             
             connect(square, &QPushButton::clicked, this, &ChessBoard::squareClicked);
@@ -62,8 +62,15 @@ void ChessBoard::setupInitialPosition() {
                 QIcon icon(svgPath);
                 squares[row][col]->setIcon(icon);
                 squares[row][col]->setIconSize(QSize(36, 36));
+
+                if (std::isupper(piece)) {
+                    squares[row][col]->setProperty("pieceColor", "white");
+                } else {
+                    squares[row][col]->setProperty("pieceColor", "black");
+                }
             } else {
                 squares[row][col]->setIcon(QIcon());
+                squares[row][col]->setProperty("pieceColor", "none");
             }
         }
     }
@@ -75,19 +82,37 @@ void ChessBoard::squareClicked() {
 
     if (!selectedPiece && !square->icon().isNull()) {
         selectedPiece = square;
-        square->setStyleSheet(square->styleSheet() + "background-color: yellow;");
-    } else if (selectedPiece) {
+
+        QString pieceColor = square->property("pieceColor").toString();
+        QString highlightColor;
+
+        if (pieceColor == "white") {
+            highlightColor = "#595959";
+        } else if (pieceColor == "black") {
+            highlightColor = "#363636";
+        } else {
+            highlightColor = "#FFD700";
+        }
+
+        square->setStyleSheet("background-color: " + highlightColor + "; font-size: 32px; border-radius: 0; padding: 0;");
+    } 
+    else if (selectedPiece) {
         square->setIcon(selectedPiece->icon());
         square->setIconSize(QSize(36, 36));
 
+        QString movedPieceColor = selectedPiece->property("pieceColor").toString();
+        square->setProperty("pieceColor", movedPieceColor);
+
         selectedPiece->setIcon(QIcon());
 
-        int row = selectedPiece->property("row").toInt();
-        int col = selectedPiece->property("col").toInt();
-        QString style = ((row + col) % 2 == 0)
-            ? "background-color: white;"
-            : "background-color: lightgray;";
-        selectedPiece->setStyleSheet(style);
+        selectedPiece->setProperty("pieceColor", "none");
+
+        int prevRow = selectedPiece->property("row").toInt();
+        int prevCol = selectedPiece->property("col").toInt();
+        QString originalStyle = ((prevRow + prevCol) % 2 == 0)
+            ? "background-color: #7c4c3e; font-size: 32px; border-radius: 0; padding: 0;"
+            : "background-color: #512a2a; font-size: 32px; border-radius: 0; padding: 0;";
+        selectedPiece->setStyleSheet(originalStyle);
 
         selectedPiece = nullptr;
     }

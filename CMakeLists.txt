@@ -12,6 +12,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Svg)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/assets/styles/style.qss
+               ${CMAKE_CURRENT_BINARY_DIR}/style.qss COPYONLY)
+
 set(SOURCES
     src/main.cpp
     src/chessboard.cpp
@@ -24,11 +27,11 @@ set(HEADERS
     include/constants.h
 )
 
-add_executable(grandmaster
+add_executable(Grandmaster
     src/main.cpp
     src/chessboard.cpp
     include/chessboard.h
     qresource.qrc
 )
 
-target_link_libraries(grandmaster PRIVATE Qt6::Widgets Qt6::Svg)
+target_link_libraries(Grandmaster PRIVATE Qt6::Widgets Qt6::Svg)
