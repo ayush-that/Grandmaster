@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/pieces/w_king.svg</file>
+        <file>assets/pieces/w_queen.svg</file>
+        <file>assets/pieces/w_rook.svg</file>
+        <file>assets/pieces/w_bishop.svg</file>
+        <file>assets/pieces/w_knight.svg</file>
+        <file>assets/pieces/w_pawn.svg</file>
+        <file>assets/pieces/b_king.svg</file>
+        <file>assets/pieces/b_queen.svg</file>
+        <file>assets/pieces/b_rook.svg</file>
+        <file>assets/pieces/b_bishop.svg</file>
+        <file>assets/pieces/b_knight.svg</file>
+        <file>assets/pieces/b_pawn.svg</file>
+    </qresource>
+</RCC>

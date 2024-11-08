@@ -1,5 +1,6 @@
 #include "chessboard.h"
 #include <QtDebug>
+#include <QIcon>
 
 ChessBoard::ChessBoard(QWidget *parent) : QWidget(parent), selectedPiece(nullptr) {
     layout = new QGridLayout(   this);
@@ -34,20 +35,20 @@ void ChessBoard::initializeBoard() {
     }
 }
 
-QString ChessBoard::getPieceSymbol(char piece) {
+QString ChessBoard::getPieceSvgPath(char piece) {
     switch (piece) {
-        case 'K': return "♔";
-        case 'Q': return "♕";
-        case 'R': return "♖";
-        case 'B': return "♗";
-        case 'N': return "♘";
-        case 'P': return "♙";
-        case 'k': return "♚";
-        case 'q': return "♛";
-        case 'r': return "♜";
-        case 'b': return "♝";
-        case 'n': return "♞";
-        case 'p': return "♟";
+        case 'K': return ":/assets/pieces/w_king.svg";
+        case 'Q': return ":/assets/pieces/w_queen.svg";
+        case 'R': return ":/assets/pieces/w_rook.svg";
+        case 'B': return ":/assets/pieces/w_bishop.svg";
+        case 'N': return ":/assets/pieces/w_knight.svg";
+        case 'P': return ":/assets/pieces/w_pawn.svg";
+        case 'k': return ":/assets/pieces/b_king.svg";
+        case 'q': return ":/assets/pieces/b_queen.svg";
+        case 'r': return ":/assets/pieces/b_rook.svg";
+        case 'b': return ":/assets/pieces/b_bishop.svg";
+        case 'n': return ":/assets/pieces/b_knight.svg";
+        case 'p': return ":/assets/pieces/b_pawn.svg";
         default: return "";
     }
 }
@@ -56,14 +57,13 @@ void ChessBoard::setupInitialPosition() {
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             char piece = initialPosition[row][col];
-            squares[row][col]->setText(getPieceSymbol(piece));
-            
-            if (isupper(piece)) {
-                squares[row][col]->setStyleSheet(squares[row][col]->styleSheet() + 
-                    "color: black;");
-            } else if (islower(piece)) {
-                squares[row][col]->setStyleSheet(squares[row][col]->styleSheet() + 
-                    "color: darkred;");
+            QString svgPath = getPieceSvgPath(piece);
+            if (!svgPath.isEmpty()) {
+                QIcon icon(svgPath);
+                squares[row][col]->setIcon(icon);
+                squares[row][col]->setIconSize(QSize(36, 36));
+            } else {
+                squares[row][col]->setIcon(QIcon());
             }
         }
     }
@@ -72,24 +72,23 @@ void ChessBoard::setupInitialPosition() {
 void ChessBoard::squareClicked() {
     QPushButton* square = qobject_cast<QPushButton*>(sender());
     if (!square) return;
-    
-    if (!selectedPiece && !square->text().isEmpty()) {
+
+    if (!selectedPiece && !square->icon().isNull()) {
         selectedPiece = square;
         square->setStyleSheet(square->styleSheet() + "background-color: yellow;");
     } else if (selectedPiece) {
-        square->setText(selectedPiece->text());
-        square->setStyleSheet(square->styleSheet() + 
-            (selectedPiece->text()[0].unicode() > 9812 ? "color: darkred;" : "color: black;"));
-        
-        selectedPiece->setText("");
+        square->setIcon(selectedPiece->icon());
+        square->setIconSize(QSize(36, 36));
+
+        selectedPiece->setIcon(QIcon());
+
         int row = selectedPiece->property("row").toInt();
         int col = selectedPiece->property("col").toInt();
-        QString style = ((row + col) % 2 == 0) 
-            ? "background-color: white;" 
+        QString style = ((row + col) % 2 == 0)
+            ? "background-color: white;"
             : "background-color: lightgray;";
-        style += "font-size: 24px;";
         selectedPiece->setStyleSheet(style);
-        
+
         selectedPiece = nullptr;
     }
 }

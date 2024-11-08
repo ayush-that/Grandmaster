@@ -16,6 +16,7 @@ private:
     void initializeBoard();
     void setupInitialPosition();
     QString getPieceSymbol(char piece);
+    QString getPieceSvgPath(char piece);
     
     std::vector<std::vector<QPushButton*>> squares;
     QPushButton* selectedPiece;

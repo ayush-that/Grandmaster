@@ -6,7 +6,7 @@
 
 ```bash
 sudo apt update
-sudo apt-install qt6-base-dev build-essential cmake
+sudo apt-install qt6-base-dev build-essential cmake qt6-svg-dev
 ```
 
 2. Build the project:

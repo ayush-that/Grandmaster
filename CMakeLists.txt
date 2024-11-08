@@ -10,7 +10,7 @@ set(CMAKE_AUTOUIC ON)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-find_package(Qt6 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Svg)
 
 set(SOURCES
     src/main.cpp
@@ -24,5 +24,11 @@ set(HEADERS
     include/constants.h
 )
 
-add_executable(Grandmaster ${SOURCES} ${HEADERS})
-target_link_libraries(Grandmaster PRIVATE Qt6::Widgets)
+add_executable(grandmaster
+    src/main.cpp
+    src/chessboard.cpp
+    include/chessboard.h
+    qresource.qrc
+)
+
+target_link_libraries(grandmaster PRIVATE Qt6::Widgets Qt6::Svg)
