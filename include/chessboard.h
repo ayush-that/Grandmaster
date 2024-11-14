@@ -21,6 +21,7 @@ private:
     std::vector<std::vector<QPushButton*>> squares;
     QPushButton* selectedPiece;
     QGridLayout *layout;
+    QString currentTurn;
     
     std::vector<std::vector<char>> initialPosition = {
         {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'},

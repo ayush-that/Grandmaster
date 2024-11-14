@@ -6,7 +6,7 @@
 
 QMap<QPushButton*, QString> squareOriginalStyles;
 
-ChessBoard::ChessBoard(QWidget *parent) : QWidget(parent), selectedPiece(nullptr) {
+ChessBoard::ChessBoard(QWidget *parent) : QWidget(parent), selectedPiece(nullptr), currentTurn("black") {
     layout = new QGridLayout(this);
     layout->setSpacing(0);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -85,34 +85,28 @@ void ChessBoard::squareClicked() {
     QPushButton* square = qobject_cast<QPushButton*>(sender());
     if (!square) return;
 
+    QString pieceColor = square->property("pieceColor").toString();
+
+    if (!selectedPiece && pieceColor != currentTurn) {
+        return;
+    }
+
     if (!selectedPiece && !square->icon().isNull()) {
         selectedPiece = square;
-
-        QString pieceColor = square->property("pieceColor").toString();
-        QString highlightColor;
-
-        if (pieceColor == "white") {
-            highlightColor = "#595959";
-        } else if (pieceColor == "black") {
-            highlightColor = "#363636";
-        } else {
-            highlightColor = "#FFD700";
-        }
-
+        QString highlightColor = (pieceColor == "white") ? "#595959" : "#363636";
         square->setStyleSheet("background-color: " + highlightColor + "; font-size: 32px; border-radius: 0; padding: 0;");
     } 
     else if (selectedPiece) {
         square->setIcon(selectedPiece->icon());
         square->setIconSize(QSize(36, 36));
-
         QString movedPieceColor = selectedPiece->property("pieceColor").toString();
         square->setProperty("pieceColor", movedPieceColor);
-
         selectedPiece->setIcon(QIcon());
         selectedPiece->setProperty("pieceColor", "none");
 
+        currentTurn = (currentTurn == "black") ? "white" : "black";
+
         selectedPiece->setStyleSheet(squareOriginalStyles[selectedPiece]);
-        
         selectedPiece = nullptr;
     }
 }
