@@ -2,6 +2,9 @@
 #include <QtDebug>
 #include <QIcon>
 #include <cctype>
+#include <QMap>
+
+QMap<QPushButton*, QString> squareOriginalStyles;
 
 ChessBoard::ChessBoard(QWidget *parent) : QWidget(parent), selectedPiece(nullptr) {
     layout = new QGridLayout(this);
@@ -27,6 +30,8 @@ void ChessBoard::initializeBoard() {
                 : "background-color: #512a2a; font-size: 32px;";
             square->setStyleSheet(style);
             
+            squareOriginalStyles[square] = style;
+
             connect(square, &QPushButton::clicked, this, &ChessBoard::squareClicked);
             
             squares[row][col] = square;
@@ -104,16 +109,10 @@ void ChessBoard::squareClicked() {
         square->setProperty("pieceColor", movedPieceColor);
 
         selectedPiece->setIcon(QIcon());
-
         selectedPiece->setProperty("pieceColor", "none");
 
-        int prevRow = selectedPiece->property("row").toInt();
-        int prevCol = selectedPiece->property("col").toInt();
-        QString originalStyle = ((prevRow + prevCol) % 2 == 0)
-            ? "background-color: #7c4c3e; font-size: 32px; border-radius: 0; padding: 0;"
-            : "background-color: #512a2a; font-size: 32px; border-radius: 0; padding: 0;";
-        selectedPiece->setStyleSheet(originalStyle);
-
+        selectedPiece->setStyleSheet(squareOriginalStyles[selectedPiece]);
+        
         selectedPiece = nullptr;
     }
 }
