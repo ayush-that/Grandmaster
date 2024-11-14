@@ -10,7 +10,7 @@ set(CMAKE_AUTOUIC ON)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Svg)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Svg Multimedia)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/assets/styles/style.qss
                ${CMAKE_CURRENT_BINARY_DIR}/style.qss COPYONLY)
@@ -34,4 +34,4 @@ add_executable(Grandmaster
     qresource.qrc
 )
 
-target_link_libraries(Grandmaster PRIVATE Qt6::Widgets Qt6::Svg)
+target_link_libraries(Grandmaster PRIVATE Qt6::Widgets Qt6::Svg Qt6::Multimedia)

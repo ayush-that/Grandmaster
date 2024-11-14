@@ -3,13 +3,17 @@
 #include <QIcon>
 #include <cctype>
 #include <QMap>
+#include <QMediaPlayer>
 
 QMap<QPushButton*, QString> squareOriginalStyles;
 
-ChessBoard::ChessBoard(QWidget *parent) : QWidget(parent), selectedPiece(nullptr), currentTurn("black") {
+ChessBoard::ChessBoard(QWidget *parent) : QWidget(parent), selectedPiece(nullptr), currentTurn("white") {
     layout = new QGridLayout(this);
     layout->setSpacing(0);
     layout->setContentsMargins(0, 0, 0, 0);
+
+    moveSound = new QMediaPlayer(this);
+    moveSound->setSource(QUrl("qrc:/assets/sounds/move-self.mp3"));
     
     initializeBoard();
     setupInitialPosition();
@@ -67,6 +71,7 @@ void ChessBoard::setupInitialPosition() {
                 QIcon icon(svgPath);
                 squares[row][col]->setIcon(icon);
                 squares[row][col]->setIconSize(QSize(36, 36));
+                squares[row][col]->setProperty("pieceType", QChar(piece)); // Add this line
 
                 if (std::isupper(piece)) {
                     squares[row][col]->setProperty("pieceColor", "white");
@@ -76,14 +81,111 @@ void ChessBoard::setupInitialPosition() {
             } else {
                 squares[row][col]->setIcon(QIcon());
                 squares[row][col]->setProperty("pieceColor", "none");
+                squares[row][col]->setProperty("pieceType", QChar(' ')); // Add this line
             }
         }
     }
 }
 
+char ChessBoard::getPieceAt(int row, int col) {
+    QPushButton* square = squares[row][col];
+    if (square->icon().isNull()) return ' ';
+    
+    return square->property("pieceType").toChar().toLatin1();
+}
+
+bool ChessBoard::isValidMove(int fromRow, int fromCol, int toRow, int toCol) {
+    char piece = getPieceAt(fromRow, fromCol);
+    
+    if (toRow < 0 || toRow >= 8 || toCol < 0 || toCol >= 8) return false;
+    
+    QString fromColor = squares[fromRow][fromCol]->property("pieceColor").toString();
+    QString toColor = squares[toRow][toCol]->property("pieceColor").toString();
+    if (toColor == fromColor) return false;
+    
+    switch (std::toupper(piece)) {
+        case 'P': return isValidPawnMove(fromRow, fromCol, toRow, toCol);
+        case 'R': return isValidRookMove(fromRow, fromCol, toRow, toCol);
+        case 'N': return isValidKnightMove(fromRow, fromCol, toRow, toCol);
+        case 'B': return isValidBishopMove(fromRow, fromCol, toRow, toCol);
+        case 'Q': return isValidQueenMove(fromRow, fromCol, toRow, toCol);
+        case 'K': return isValidKingMove(fromRow, fromCol, toRow, toCol);
+        default: return false;
+    }
+}
+
+bool ChessBoard::isValidPawnMove(int fromRow, int fromCol, int toRow, int toCol) {
+    QString pieceColor = squares[fromRow][fromCol]->property("pieceColor").toString();
+    int direction = (pieceColor == "white") ? 1 : -1;
+    
+    if (fromCol == toCol) {
+        if (toRow == fromRow + direction && getPieceAt(toRow, toCol) == ' ') {
+            return true;
+        }
+        if ((pieceColor == "white" && fromRow == 1) || (pieceColor == "black" && fromRow == 6)) {
+            if (toRow == fromRow + 2 * direction && 
+                getPieceAt(toRow, toCol) == ' ' && 
+                getPieceAt(fromRow + direction, toCol) == ' ') {
+                return true;
+            }
+        }
+    }
+    
+    if (toRow == fromRow + direction && abs(toCol - fromCol) == 1) {
+        if (squares[toRow][toCol]->property("pieceColor").toString() != "none" &&
+            squares[toRow][toCol]->property("pieceColor").toString() != pieceColor) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool ChessBoard::isValidRookMove(int fromRow, int fromCol, int toRow, int toCol) {
+    return (fromRow == toRow || fromCol == toCol) && isPathClear(fromRow, fromCol, toRow, toCol);
+}
+
+bool ChessBoard::isValidKnightMove(int fromRow, int fromCol, int toRow, int toCol) {
+    int rowDiff = abs(toRow - fromRow);
+    int colDiff = abs(toCol - fromCol);
+    return (rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2);
+}
+
+bool ChessBoard::isValidBishopMove(int fromRow, int fromCol, int toRow, int toCol) {
+    return (abs(toRow - fromRow) == abs(toCol - fromCol)) && isPathClear(fromRow, fromCol, toRow, toCol);
+}
+
+bool ChessBoard::isValidQueenMove(int fromRow, int fromCol, int toRow, int toCol) {
+    return (isValidRookMove(fromRow, fromCol, toRow, toCol) || 
+            isValidBishopMove(fromRow, fromCol, toRow, toCol));
+}
+
+bool ChessBoard::isValidKingMove(int fromRow, int fromCol, int toRow, int toCol) {
+    return abs(toRow - fromRow) <= 1 && abs(toCol - fromCol) <= 1;
+}
+
+bool ChessBoard::isPathClear(int fromRow, int fromCol, int toRow, int toCol) {
+    int rowDir = (toRow > fromRow) ? 1 : (toRow < fromRow) ? -1 : 0;
+    int colDir = (toCol > fromCol) ? 1 : (toCol < fromCol) ? -1 : 0;
+    
+    int row = fromRow + rowDir;
+    int col = fromCol + colDir;
+    
+    while (row != toRow || col != toCol) {
+        if (getPieceAt(row, col) != ' ') return false;
+        row += rowDir;
+        col += colDir;
+    }
+    
+    return true;
+}
+
 void ChessBoard::squareClicked() {
     QPushButton* square = qobject_cast<QPushButton*>(sender());
     if (!square) return;
+
+    int clickedRow = square->property("row").toInt();
+    int clickedCol = square->property("col").toInt();
 
     QString pieceColor = square->property("pieceColor").toString();
 
@@ -97,16 +199,30 @@ void ChessBoard::squareClicked() {
         square->setStyleSheet("background-color: " + highlightColor + "; font-size: 32px; border-radius: 0; padding: 0;");
     } 
     else if (selectedPiece) {
-        square->setIcon(selectedPiece->icon());
-        square->setIconSize(QSize(36, 36));
-        QString movedPieceColor = selectedPiece->property("pieceColor").toString();
-        square->setProperty("pieceColor", movedPieceColor);
-        selectedPiece->setIcon(QIcon());
-        selectedPiece->setProperty("pieceColor", "none");
+        int selectedRow = selectedPiece->property("row").toInt();
+        int selectedCol = selectedPiece->property("col").toInt();
+        
+        if (isValidMove(selectedRow, selectedCol, clickedRow, clickedCol)) {
+            square->setIcon(selectedPiece->icon());
+            square->setIconSize(QSize(36, 36));
+            square->setProperty("pieceType", selectedPiece->property("pieceType"));
+            square->setProperty("pieceColor", selectedPiece->property("pieceColor"));
+            
+            selectedPiece->setIcon(QIcon());
+            selectedPiece->setProperty("pieceType", QChar(' '));
+            selectedPiece->setProperty("pieceColor", "none");
 
-        currentTurn = (currentTurn == "black") ? "white" : "black";
+            moveSound->stop();
+            moveSound->play();
+
+            currentTurn = (currentTurn == "black") ? "white" : "black";
+        }
 
         selectedPiece->setStyleSheet(squareOriginalStyles[selectedPiece]);
         selectedPiece = nullptr;
     }
+}
+
+ChessBoard::~ChessBoard() {
+    delete moveSound;
 }

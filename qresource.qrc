@@ -12,5 +12,11 @@
         <file>assets/pieces/b_bishop.svg</file>
         <file>assets/pieces/b_knight.svg</file>
         <file>assets/pieces/b_pawn.svg</file>
+        <file>assets/sounds/move-self.mp3</file>
+        <file>assets/sounds/capture.mp3</file>
+        <file>assets/sounds/move-check.mp3</file>
+        <file>assets/sounds/castle.mp3</file>
+        <file>assets/sounds/notify.mp3</file>
+        <file>assets/sounds/promote.mp3</file>
     </qresource>
 </RCC>
